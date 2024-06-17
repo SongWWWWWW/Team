@@ -175,7 +175,7 @@
 
 
 import os
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import faiss
 import jieba
@@ -188,20 +188,27 @@ from sklearn.preprocessing import normalize
 
 
 class DB:
-    def __init__(self, model_path: str, text: List[str], index_file: Optional[str] = None,
+    def __init__(self, model: Union[str, SentenceTransformer], text: List[str], index_file: Optional[str] = None,
                  save_index: bool = False) -> None:
         """
         实现数据的存储与检索
-        @param model_path: embedding模型路径
+        @param model: embedding模型路径或已经初始化的模型实例
         @param text: 将要存储在向量库的信息
         @param index_file: 索引文件路径，如果提供则从文件加载索引
         @param save_index: 是否在生成索引后存储到文件
         """
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.text = text
-        self.embedding = SentenceTransformer(model_path).to(self.device)
 
-        # Initialize BM25
+        # 初始化模型
+        if isinstance(model, str):
+            self.embedding = SentenceTransformer(model).to(self.device)
+        elif isinstance(model, SentenceTransformer):
+            self.embedding = model.to(self.device)
+        else:
+            raise ValueError("model 参数必须是字符串或 SentenceTransformer 实例")
+
+        # 初始化 BM25
         tokenized_corpus = [list(jieba.cut(doc)) for doc in text]
         self.bm25 = BM25Okapi(tokenized_corpus)
 

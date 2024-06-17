@@ -98,6 +98,8 @@
 import os
 import sys
 
+from sentence_transformers import SentenceTransformer
+
 sys.path.append(os.path.dirname(__file__))
 from generate_data import getData_txt, transforme
 from rag import ChatZhipu, multiThreading, read_toml_config
@@ -132,9 +134,7 @@ def change_id(query):
     print(len(new_query))
     query = new_query
     with_id_query = zhipu.get_true_question(query)
-    query = []
-    for q in with_id_query:
-        query.append(q["query"])
+    return with_id_query
 
 
 def get_full_information(retrival_information):
@@ -163,12 +163,13 @@ umac_information = getData_txt("data/umac")
 logger.success("读取信息成功")
 
 # 将数据加载进入database，生成索引
+embedding = SentenceTransformer(config["embedding_path"])
 # database = DB(config["embedding_path"],source_information,save_index = True,use_parallel=True,index_file="vector_index.faiss")
-director_database = DB(config["embedding_path"], director_information, save_index=True,
+director_database = DB(embedding, director_information, save_index=True,
                        index_file="director_vector_index")
-emsplus_database = DB(config["embedding_path"], emsplus_information, save_index=True, index_file="emsplus_vector_index")
-rcp_database = DB(config["embedding_path"], rcp_information, save_index=True, index_file="rcp_vector_index")
-umac_database = DB(config["embedding_path"], umac_information, save_index=True, index_file="umac_vector_index")
+emsplus_database = DB(embedding, emsplus_information, save_index=True, index_file="emsplus_vector_index")
+rcp_database = DB(embedding, rcp_information, save_index=True, index_file="rcp_vector_index")
+umac_database = DB(embedding, umac_information, save_index=True, index_file="umac_vector_index")
 logger.success("生成索引成功")
 
 # 读取问题
