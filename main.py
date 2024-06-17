@@ -123,6 +123,7 @@ def read_jsonl(path):
             content.append(obj)
     return content
 
+
 # 合并id
 def change_id(query):
     new_query = []
@@ -134,6 +135,7 @@ def change_id(query):
     query = []
     for q in with_id_query:
         query.append(q["query"])
+
 
 def get_full_information(retrival_information):
     for index_x, informations in enumerate(retrival_information):
@@ -160,10 +162,10 @@ rcp_information = getData_txt("data/rcp")
 umac_information = getData_txt("data/umac")
 logger.success("读取信息成功")
 
-
 # 将数据加载进入database，生成索引
 # database = DB(config["embedding_path"],source_information,save_index = True,use_parallel=True,index_file="vector_index.faiss")
-director_database = DB(config["embedding_path"], director_information, save_index=True, index_file="director_vector_index")
+director_database = DB(config["embedding_path"], director_information, save_index=True,
+                       index_file="director_vector_index")
 emsplus_database = DB(config["embedding_path"], emsplus_information, save_index=True, index_file="emsplus_vector_index")
 rcp_database = DB(config["embedding_path"], rcp_information, save_index=True, index_file="rcp_vector_index")
 umac_database = DB(config["embedding_path"], umac_information, save_index=True, index_file="umac_vector_index")
@@ -188,9 +190,7 @@ rcp_query = change_id(classified_dict['rcp'])
 umac_query = change_id(classified_dict['umac'])
 logger.success("读取问题成功")
 
-
-
-# ######################## 
+# ########################
 # # 先用前三个试试水
 # # query = query[:3]
 # #######################
@@ -209,7 +209,7 @@ umac_information = umac_database.get_information_by_multiRetriever(umac_query, c
 information = director_information + emsplus_information + rcp_information + umac_information
 query = director_query + emsplus_query + rcp_query + umac_query
 
-print("="*50)
+print("=" * 50)
 print(query[55])
 print(information[55][0])
 
@@ -228,6 +228,6 @@ for item in answers:
 
 logger.success(f"生成答案成功，答案数量为{len(answers)}")
 wirte_file("test6.jsonl", answers=answers)
-print("="*50)
+print("=" * 50)
 print(answers[55])
 logger.success("文件成功写入test6.jsonl")

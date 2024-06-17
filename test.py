@@ -1,9 +1,8 @@
+import json
 
 import jsonlines
-import json
-from db import DB
-from generate_data import getData_html2
-from rag import read_toml_config
+
+
 def read_jsonl(path):
     content = []
     with jsonlines.open(path, "r") as json_file:
@@ -12,29 +11,27 @@ def read_jsonl(path):
     return content
 
 
-
 question = read_jsonl("question.jsonl")
 answers = read_jsonl("test6.jsonl")
 new_answers = []
-for index_x,q in enumerate(question):
-    for index_y,ans in enumerate(answers):
+for index_x, q in enumerate(question):
+    for index_y, ans in enumerate(answers):
         # if ans["query"] == q["query"]:
         if q["id"] == ans["id"]:
             # if ans["query"]["query"] != q["query"]:
-                # print(ans["query"],q["query"])
+            # print(ans["query"],q["query"])
             print(q["id"])
             # if q["id"] == 36:
-                # print(ans["answer"])
+            # print(ans["answer"])
             try:
-                new_answers.append({"id":q["id"],"query":q["query"],"answer":ans["answer"]})
+                new_answers.append({"id": q["id"], "query": q["query"], "answer": ans["answer"]})
             except:
-                print(q["id"],ans["answer"])
+                print(q["id"], ans["answer"])
 print(len(new_answers))
 with open("answer.jsonl", "w", encoding='utf-8') as f:
     for ans in new_answers:
-        json.dump(ans,f,ensure_ascii=False)
+        json.dump(ans, f, ensure_ascii=False)
         f.write('\n')
-
 
 # config = read_toml_config("config.toml")
 # answers = read_jsonl("answer6.jsonl")
@@ -51,8 +48,3 @@ with open("answer.jsonl", "w", encoding='utf-8') as f:
 #     for ans in with_information:
 #         json.dump(ans,f,ensure_ascii=False)
 #         f.write('\n')
-
-
-
-
-

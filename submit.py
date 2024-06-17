@@ -17,7 +17,7 @@
 #     judge_server = judge_server or JUDGE_SERVER
 #     contest = contest or CONTEST
 #     ticket = ticket or TICKET
-    
+
 #     if not judge_server or not contest or not ticket:
 #         missing = [
 #             "judge_server" if not judge_server else "",
@@ -27,7 +27,7 @@
 #         missing = [m for m in missing if m]
 #         print("Required fields must be provided: %s" % ', '.join(missing))
 #         return None
-    
+
 #     req_data = json.dumps({'data': data}).encode('utf-8')
 #     req = request.Request(judge_server, data=req_data, headers={'ticket': ticket, 'contest': contest, 'Content-Type': 'application/json'})
 
@@ -55,7 +55,7 @@
 #     parser.add_argument('-s', '--server', help='Judge server URL, if not specified, the global JUDGE_SERVER variable will be used')
 #     parser.add_argument('-c', '--contest', help='Contest ID, if not specified, the global CONTEST variable will be used')
 #     parser.add_argument('-k', '--ticket', help='Submission ticket, if not specified, the global TICKET variable will be used')
-    
+
 #     args = parser.parse_args()
 
 #     try:
@@ -71,12 +71,11 @@
 #         exit(0)
 #     else:
 #         exit(1)
-#!/usr/bin/env python3
+# !/usr/bin/env python3
 
-import json
 import argparse
+import json
 from urllib import request, error
-
 
 # 提交答案服务域名或IP
 JUDGE_SERVER = "http://judge.aiops-challenge.com"
@@ -90,7 +89,7 @@ def submit(data, judge_server=None, contest=None, ticket=None):
     judge_server = judge_server or JUDGE_SERVER
     contest = contest or CONTEST
     ticket = ticket or TICKET
-    
+
     if not judge_server or not contest or not ticket:
         missing = [
             "judge_server" if not judge_server else "",
@@ -100,9 +99,10 @@ def submit(data, judge_server=None, contest=None, ticket=None):
         missing = [m for m in missing if m]
         print("Required fields must be provided: %s" % ', '.join(missing))
         return None
-    
+
     req_data = json.dumps({'data': data}).encode('utf-8')
-    req = request.Request(judge_server, data=req_data, headers={'ticket': ticket, 'contest': contest, 'Content-Type': 'application/json'})
+    req = request.Request(judge_server, data=req_data,
+                          headers={'ticket': ticket, 'contest': contest, 'Content-Type': 'application/json'})
 
     try:
         with request.urlopen(req) as response:
@@ -123,12 +123,13 @@ def submit(data, judge_server=None, contest=None, ticket=None):
     except error.URLError as e:
         print(e.reason)
         return None
-    
+
+
 def check_status(submission_id, judge_server=None, contest=None, ticket=None):
     judge_server = judge_server or JUDGE_SERVER
     contest = contest or CONTEST
     ticket = ticket or TICKET
-    
+
     if not judge_server or not contest or not ticket or not submission_id:
         missing = [
             "judge_server" if not judge_server else "",
@@ -139,8 +140,10 @@ def check_status(submission_id, judge_server=None, contest=None, ticket=None):
         missing = [m for m in missing if m]
         print("Required fields must be provided: %s" % ', '.join(missing))
         return None
-    
-    req = request.Request(judge_server + "/status/", headers={'ticket': ticket, 'contest': contest, 'submission_id': submission_id, 'Content-Type': 'application/json'})
+
+    req = request.Request(judge_server + "/status/",
+                          headers={'ticket': ticket, 'contest': contest, 'submission_id': submission_id,
+                                   'Content-Type': 'application/json'})
 
     try:
         with request.urlopen(req) as response:
@@ -161,14 +164,20 @@ def check_status(submission_id, judge_server=None, contest=None, ticket=None):
         print(e.reason)
         return None
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Submit to judge server")
-    parser.add_argument('result_path', nargs='?', default='result.jsonl', help='Path to the submission file, default is result.jsonl')
-    parser.add_argument('-s', '--server', help='Judge server URL, if not specified, the global JUDGE_SERVER variable will be used')
-    parser.add_argument('-c', '--contest', help='Contest ID, if not specified, the global CONTEST variable will be used')
-    parser.add_argument('-k', '--ticket', help='Submission ticket, if not specified, the global TICKET variable will be used')
-    parser.add_argument('-i', '--submission_id', help='Submission ID, specified if you want to check the submission status', default=None)
-    
+    parser.add_argument('result_path', nargs='?', default='result.jsonl',
+                        help='Path to the submission file, default is result.jsonl')
+    parser.add_argument('-s', '--server',
+                        help='Judge server URL, if not specified, the global JUDGE_SERVER variable will be used')
+    parser.add_argument('-c', '--contest',
+                        help='Contest ID, if not specified, the global CONTEST variable will be used')
+    parser.add_argument('-k', '--ticket',
+                        help='Submission ticket, if not specified, the global TICKET variable will be used')
+    parser.add_argument('-i', '--submission_id',
+                        help='Submission ID, specified if you want to check the submission status', default=None)
+
     args = parser.parse_args()
 
     if args.submission_id:
@@ -179,11 +188,12 @@ if __name__ == "__main__":
             create_time = status.get('create_time')
             judge_time = status.get('judge_time')
 
-            if not judge_time: 
+            if not judge_time:
                 print("Submission %s is still in queue." % submission_id)
             else:
                 if score < 0:
-                    print("Submission %s for evaluation has failed. We are currently experiencing issues with the evaluation system. Please check official updates and try again later. This submission will not be counted into your quota." % submission_id)
+                    print(
+                        "Submission %s for evaluation has failed. We are currently experiencing issues with the evaluation system. Please check official updates and try again later. This submission will not be counted into your quota." % submission_id)
                     exit(0)
                 print("Submission %s score: %s" % (submission_id, score))
             exit(0)
