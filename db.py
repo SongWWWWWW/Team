@@ -25,7 +25,7 @@
 #         self.use_parallel = use_parallel
 #         self.num_threads = num_threads
 #         self.batch_size = batch_size
-        
+
 #         if index_file and self.check_index_file(index_file):
 #             self.index = self.load_index(index_file)  # 从文件加载索引
 #         else:
@@ -122,7 +122,7 @@
 #         """
 #         def encode_batch(batch_texts):
 #             return self.embedding.encode(batch_texts, device=self.device, normalize_embeddings=False)
-        
+
 #         with ThreadPoolExecutor(max_workers=num_threads) as executor:
 #             tasks = []
 #             for i in range(0, len(texts), batch_size):
@@ -156,7 +156,7 @@
 #             # with open(filename, mode='w', newline='', encoding='utf-8') as file:
 #             #     # 创建一个 CSV writer 对象
 #             #     writer = csv.writer(file)
-                
+
 #             #     # 遍历二维数组并写入每一行
 #             #     for row in I:
 #             #         writer.writerow(row)
@@ -174,18 +174,22 @@
 #             raise
 
 
-import torch
-import faiss
-import numpy as np
-from typing import List, Optional
-from sentence_transformers import SentenceTransformer
-from rank_bm25 import BM25Okapi
-import jieba
 import os
+from typing import List, Optional
+
+import faiss
+import jieba
+import numpy as np
+import torch
+from rank_bm25 import BM25Okapi
+from sentence_transformers import SentenceTransformer
 from sklearn.preprocessing import StandardScaler
 from sklearn.preprocessing import normalize
+
+
 class DB:
-    def __init__(self, model_path: str, text: List[str], index_file: Optional[str] = None, save_index: bool = False) -> None:
+    def __init__(self, model_path: str, text: List[str], index_file: Optional[str] = None,
+                 save_index: bool = False) -> None:
         """
         实现数据的存储与检索
         @param model_path: embedding模型路径
@@ -200,7 +204,7 @@ class DB:
         # Initialize BM25
         tokenized_corpus = [list(jieba.cut(doc)) for doc in text]
         self.bm25 = BM25Okapi(tokenized_corpus)
-        
+
         if index_file and os.path.exists(index_file):
             print('loading....')
             self.index = self.load_index(index_file)  # 从文件加载索引
@@ -293,10 +297,10 @@ class DB:
             # BM25 Retrieval
             tokenized_query = [list(jieba.cut(q)) for q in query]
             bm25_scores = np.array([self.bm25.get_scores(q) for q in tokenized_query])
-            
+
             # FAISS Retrieval
             query_embedding = self.encode_texts(query)
-            faiss_D, faiss_I = self.index.search(query_embedding, 2048)
+            faiss_D, faiss_I = self.index.search(query_embedding, int(2048))
 
             # Convert FAISS distances to similarity scores (inverse of distance)
             faiss_scores = -faiss_D
@@ -307,40 +311,17 @@ class DB:
             # Combine BM25 and FAISS scores
             rows = np.arange(bm25_scores.shape[0])[:, np.newaxis]  # 创建行索引
             # TODO：调整权重？
-            combined_scores = bm25_scores_normalized[rows, faiss_I] + faiss_scores_normalized
-            
+            combined_scores = 0.6 * bm25_scores_normalized[rows, faiss_I] + 0.4 * faiss_scores_normalized
             combined_results = []
             for i in range(len(query)):
                 top_k_indices = np.argsort(combined_scores[i])[::-1][:k]
+                print(combined_scores[i][top_k_indices])
                 combined_results.append([self.text[faiss_I[i][j]] for j in top_k_indices])
 
             return combined_results
         except Exception as e:
             print(f"Error in retrieving information: {e}")
             raise
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 # import os
 # from sentence_transformers import SentenceTransformer
@@ -374,11 +355,11 @@ class DB:
 # #     vectors_np = np.array(cut_vecs).astype('float32') # 转换为 numpy 数组
 # #     # 添加向量到索引
 # #     gpu_index.add(vectors_np)
-      
+
 # #     # 存储索引到文件（可选）
 # #     if save:
 # #         faiss.write_index(faiss.index_gpu_to_cpu(gpu_index), 'vector_index.faiss')
-    
+
 # #     return gpu_index
 # # def getInformationByIndex(index,query:str,model,text:List[str],k:int) -> str:
 # #     """
@@ -424,7 +405,7 @@ class DB:
 #         # 存储索引到文件（可选）
 #         if save:
 #             faiss.write_index(faiss.index_gpu_to_cpu(gpu_index), 'vector_index.faiss')
-        
+
 #         return gpu_index
 #     def getInformationByIndex(self,query:List[str],k:int) -> str:
 #         """
@@ -451,14 +432,10 @@ class DB:
 #                 information += self.text[I[i][j]] + '\n'
 #             result.append(information)
 #         return result
-    
+
 # if __name__ == "__main__":
 #     x = "hello"*50000
 #     db = DB("../iampanda/zpoint_large_embedding_zh", ["hello", "world", "this is a test",x])
 #     query = "example query"
 #     k = 2  # 想要检索的最近邻个数
 #     # print(db.getInformationByIndex(query, k))
-        
-
-
-

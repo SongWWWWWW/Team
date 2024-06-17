@@ -3,10 +3,10 @@
 loguru 封装类，导入即可直接使用
 # 当前文件名 logger.py
 """
-import sys
-from functools import wraps
-import os
 import datetime
+import os
+from functools import wraps
+
 import loguru
 
 
@@ -32,7 +32,7 @@ def singleton_class_decorator(cls):
     return wrapper_class
 
 
-@singleton_class_decorator # 这是一个单例类，单例类是指一个类只能实例化一个对象
+@singleton_class_decorator  # 这是一个单例类，单例类是指一个类只能实例化一个对象
 class Logger:
     def __init__(self, log_dir=None):
         self.log_dir = log_dir or self.get_default_log_dir()
@@ -47,7 +47,6 @@ class Logger:
     def get_log_format(self):
         # 定义日志格式，将MAC地址放在日期时间之前
         return f"{{time:YYYY-MM-DD HH:mm:ss.SSS}} | {{level: <8}} | {{name}}:{{function}}:{{line}} - {{message}}"
-
 
     def get_log_path(self):
         # 日志文件名
@@ -74,10 +73,10 @@ class Logger:
         #     format=self.get_log_format()
         # )
 
-
     @property
     def get_logger(self):
         return loguru.logger
+
 
 logger = Logger().get_logger
 

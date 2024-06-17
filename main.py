@@ -27,7 +27,7 @@
 #                     txt_content = file.read()
 #                     # print(txt_content)
 #                     txt_strings.append(txt_content)
-    
+
 #     return txt_strings
 # def read_jsonl(path):
 #     content = []
@@ -44,10 +44,8 @@
 # print("Start read txt file....")
 
 
-
 # # 加载数据
 # txt = read_txt_files(dir_path)
-
 
 
 # # 加载embedding model
@@ -81,7 +79,7 @@
 # # 使用线程池进行管理
 # with ThreadPoolExecutor(max_workers=max_threads) as executor:
 #         future_to_index = {executor.submit(process_query, information[index], query[index], index): index for index in range(len(information))}
-        
+
 #         for future in as_completed(future_to_index):
 #             index = future_to_index[future]
 #             try:
@@ -97,22 +95,26 @@
 #         json.dump(answer,f,ensure_ascii=False)
 #         f.write('\n')
 
-import os, sys
+import os
+import sys
+
 sys.path.append(os.path.dirname(__file__))
-from generate_data import getData_html,getData_html2,getData_txt,get_abbreviation_dict,transforme
-from rag import PromptTemplate,ChatZhipu,multiThreading,process_query,read_toml_config,HyDE
+from generate_data import getData_txt, transforme
+from rag import ChatZhipu, multiThreading, read_toml_config
 from db import DB
 import jsonlines
 import json
 from logger import logger
-from typing import List,Dict
-def wirte_file(file_path:str,answers:List[Dict]):
-    with open(file_path,"w") as f:
+from typing import List, Dict
+from collections import defaultdict
+
+
+def wirte_file(file_path: str, answers: List[Dict]):
+    with open(file_path, "w", encoding='utf-8') as f:
         for answer in answers:
-            json.dump(answer,f,ensure_ascii=False)
+            json.dump(answer, f, ensure_ascii=False)
             f.write('\n')
 
-    
 
 def read_jsonl(path):
     content = []
@@ -120,41 +122,74 @@ def read_jsonl(path):
         for obj in json_file.iter(type=dict, skip_invalid=True):
             content.append(obj)
     return content
+
+# 合并id
+def change_id(query):
+    new_query = []
+    for q in query:
+        new_query.append({"id": q["id"], "query": transforme(q["query"])})
+    print(len(new_query))
+    query = new_query
+    with_id_query = zhipu.get_true_question(query)
+    query = []
+    for q in with_id_query:
+        query.append(q["query"])
+
+def get_full_information(retrival_information):
+    for index_x, informations in enumerate(retrival_information):
+        new = ""
+        for index_y, infor in enumerate(informations):
+            new += f"第{index_y + 1}条信息 ：" + informations[index_y] + "\n"
+        retrival_information[index_x] = new
+    logger.success(f"检索成功，检索的长度{len(retrival_information)}")
+
+
 # # 读取配置信息
 config = read_toml_config("config.toml")
 logger.success("读取配置信息成功")
-
 
 # 获取配置的zhipu
 zhipu = ChatZhipu(config)
 logger.success("智谱读取配置成功")
 
 # 读取数据文件信息
-source_information = getData_html2(config["dir_path"])
-# source_information = getData_txt("../data")
+# source_information = getData_html2(config["dir_path"])
+director_information = getData_txt("data/director")
+emsplus_information = getData_txt("data/emsplus")
+rcp_information = getData_txt("data/rcp")
+umac_information = getData_txt("data/umac")
+logger.success("读取信息成功")
 
 
 # 将数据加载进入database，生成索引
 # database = DB(config["embedding_path"],source_information,save_index = True,use_parallel=True,index_file="vector_index.faiss")
-database = DB(config["embedding_path"],source_information,save_index = True)
-
+director_database = DB(config["embedding_path"], director_information, save_index=True, index_file="director_vector_index")
+emsplus_database = DB(config["embedding_path"], emsplus_information, save_index=True, index_file="emsplus_vector_index")
+rcp_database = DB(config["embedding_path"], rcp_information, save_index=True, index_file="rcp_vector_index")
+umac_database = DB(config["embedding_path"], umac_information, save_index=True, index_file="umac_vector_index")
 logger.success("生成索引成功")
 
 # 读取问题
 query = read_jsonl(config["question_path"])
 # query = [q['query'] for q in querys]
-# #######################
-# 合并id
-new_query = []
-for q in query:
-    new_query.append({"id":q["id"],"query":transforme(q["query"])})
+
+# 使用 defaultdict 按照 'document' 关键字分类
+classified_dict = defaultdict(list)
+for item in query:
+    document_key = item['document']
+    classified_dict[document_key].append(item)
+
+# 将 defaultdict 转换为普通字典
+classified_dict = dict(classified_dict)
+
+director_query = change_id(classified_dict['director'])
+emsplus_query = change_id(classified_dict['emsplus'])
+rcp_query = change_id(classified_dict['rcp'])
+umac_query = change_id(classified_dict['umac'])
 logger.success("读取问题成功")
-print(len(new_query))
-query = new_query
-with_id_query = zhipu.get_true_question(query)
-query = []
-for q in with_id_query:
-    query.append(q["query"])
+
+
+
 # ######################## 
 # # 先用前三个试试水
 # # query = query[:3]
@@ -165,23 +200,34 @@ for q in with_id_query:
 
 # 检索
 logger.info(f"topk = {config['top_k']}")
-retrival_information = database.get_information_by_index(query,config["top_k"])
-# retrival_information = database.get_information_by_multiRetriever(query,config["top_k"])
-for index_x,informations in enumerate(retrival_information):
-    new = ""
-    for index_y, infor in enumerate(informations):
-        new += f"第{index_y+1}条信息 ："+informations[index_y] + "\n"
-    retrival_information[index_x] = new
-logger.success(f"检索成功，检索的长度{len(retrival_information)}")
+# retrival_information = database.get_information_by_index(query, config["top_k"])
+director_information = director_database.get_information_by_multiRetriever(director_query, config["top_k"])
+emsplus_information = emsplus_database.get_information_by_multiRetriever(emsplus_query, config["top_k"])
+rcp_information = rcp_database.get_information_by_multiRetriever(rcp_query, config["top_k"])
+umac_information = umac_database.get_information_by_multiRetriever(umac_query, config["top_k"])
 
+information = director_information + emsplus_information + rcp_information + umac_information
+query = director_query + emsplus_query + rcp_query + umac_query
 
+print("="*50)
+print(query[55])
+print(information[55][0])
+
+director_information = get_full_information(information)
+logger.success("获取信息成功")
 
 # # 生成
-answers = multiThreading(query=with_id_query,information=retrival_information,zhipu=zhipu)
+answers = multiThreading(query=query, information=information, zhipu=zhipu)
+for item in answers:
+    # 获取 'query' 字符串
+    query_str = item['answer']
+    # 删除 '\n' 和 '*' 字符
+    query_str = query_str.replace('\n', '').replace('*', '')
+    # 更新字典中的 'query' 字符串
+    item['answer'] = query_str
+
 logger.success(f"生成答案成功，答案数量为{len(answers)}")
-wirte_file("test6.jsonl",answers=answers)
-print(answers)
-logger.success("文件成功写入test5.jsonl")
-
-
-# 一个巨大的问题，id的问题，id和问题和答案不对应
+wirte_file("test6.jsonl", answers=answers)
+print("="*50)
+print(answers[55])
+logger.success("文件成功写入test6.jsonl")

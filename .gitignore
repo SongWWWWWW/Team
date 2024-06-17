@@ -1,0 +1,10 @@
+log/
+test6.jsonl
+answer.jsonl
+data/
+.idea/
+vector_index
+director_vector_index
+emsplus_vector_index
+rcp_vector_index
+umac_vector_index
