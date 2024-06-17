@@ -322,7 +322,6 @@ class DB:
             combined_results = []
             for i in range(len(query)):
                 top_k_indices = np.argsort(combined_scores[i])[::-1][:k]
-                print(combined_scores[i][top_k_indices])
                 combined_results.append([self.text[faiss_I[i][j]] for j in top_k_indices])
 
             return combined_results

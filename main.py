@@ -202,10 +202,10 @@ logger.success("读取问题成功")
 # 检索
 logger.info(f"topk = {config['top_k']}")
 # retrival_information = database.get_information_by_index(query, config["top_k"])
-director_information = director_database.get_information_by_multiRetriever(director_query, config["top_k"])
-emsplus_information = emsplus_database.get_information_by_multiRetriever(emsplus_query, config["top_k"])
-rcp_information = rcp_database.get_information_by_multiRetriever(rcp_query, config["top_k"])
-umac_information = umac_database.get_information_by_multiRetriever(umac_query, config["top_k"])
+director_information = director_database.get_information_by_multiRetriever([q['query'] for q in director_query], config["top_k"])
+emsplus_information = emsplus_database.get_information_by_multiRetriever([q['query'] for q in emsplus_query], config["top_k"])
+rcp_information = rcp_database.get_information_by_multiRetriever([q['query'] for q in rcp_query], config["top_k"])
+umac_information = umac_database.get_information_by_multiRetriever([q['query'] for q in umac_query], config["top_k"])
 
 information = director_information + emsplus_information + rcp_information + umac_information
 query = director_query + emsplus_query + rcp_query + umac_query
