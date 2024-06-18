@@ -164,7 +164,7 @@ def process_query(zhipu: ChatZhipu, information: str, query: Dict) -> Dict:
     # output = zhipu.completion(input, system_prompt="你是一个擅长从上下文找信息的高手。")  
     output = zhipu.completion(input)
 
-    out = {"id": query["id"], "query": query, "answer": output, "information": information}
+    out = {"id": query["id"], "query": query["query"], "answer": output, "information": information}
     return out
 
 
