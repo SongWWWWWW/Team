@@ -312,8 +312,8 @@ class DB:
             # Convert FAISS distances to similarity scores (inverse of distance)
             faiss_scores = faiss_D
             scaler = StandardScaler()
-            bm25_scores_normalized = scaler.fit_transform(bm25_scores)
-            faiss_scores_normalized = scaler.fit_transform(faiss_scores)
+            bm25_scores_normalized = scaler.fit_transform(bm25_scores.T).T
+            faiss_scores_normalized = scaler.fit_transform(faiss_scores.T).T
 
             # Combine BM25 and FAISS scores
             rows = np.arange(bm25_scores.shape[0])[:, np.newaxis]  # 创建行索引
