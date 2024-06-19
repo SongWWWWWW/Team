@@ -212,7 +212,7 @@ print("=" * 50)
 print(query[55])
 print(information[55][0])
 
-director_information = get_full_information(information)
+information = get_full_information(information)
 logger.success("获取信息成功")
 
 # # 生成

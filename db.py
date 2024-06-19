@@ -310,7 +310,7 @@ class DB:
             faiss_D, faiss_I = self.index.search(query_embedding, int(2048))
 
             # Convert FAISS distances to similarity scores (inverse of distance)
-            faiss_scores = -faiss_D
+            faiss_scores = faiss_D
             scaler = StandardScaler()
             bm25_scores_normalized = scaler.fit_transform(bm25_scores)
             faiss_scores_normalized = scaler.fit_transform(faiss_scores)
