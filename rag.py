@@ -173,7 +173,7 @@ def HyDE(query: List[str]) -> List[str]:
     """
     config = read_toml_config("config.toml")
     zhipu = ChatZhipu(config)
-    max_threads = 5
+    max_threads = 16
     threads = []
     lock = Lock()
     results = [None] * len(query)

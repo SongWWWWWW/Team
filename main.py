@@ -102,7 +102,7 @@ from sentence_transformers import SentenceTransformer
 
 sys.path.append(os.path.dirname(__file__))
 from generate_data import getData_txt, transforme
-from rag import ChatZhipu, multiThreading, read_toml_config
+from rag import ChatZhipu, multiThreading, read_toml_config, HyDE
 from db import DB
 import jsonlines
 import json
@@ -144,6 +144,7 @@ def get_full_information(retrival_information):
             new += f"第{index_y + 1}条信息 ：" + informations[index_y] + "\n"
         retrival_information[index_x] = new
     logger.success(f"检索成功，检索的长度{len(retrival_information)}")
+    return retrival_information
 
 
 # # 读取配置信息
@@ -191,13 +192,10 @@ rcp_query = change_id(classified_dict['rcp'])
 umac_query = change_id(classified_dict['umac'])
 logger.success("读取问题成功")
 
-# ########################
-# # 先用前三个试试水
-# # query = query[:3]
-# #######################
-# query = HyDE(query)
-# for index,q in enumerate(hyde):
-#     query.append(hyde[index])
+# director_hy_query = HyDE([q['query'] for q in director_query])
+# emsplus_hy_query = HyDE([q['query'] for q in emsplus_query])
+# rcp_hy_query = HyDE([q['query'] for q in rcp_query])
+# umac_hy_query = HyDE([q['query'] for q in umac_query])
 
 # 检索
 logger.info(f"topk = {config['top_k']}")
@@ -230,5 +228,5 @@ for item in answers:
 logger.success(f"生成答案成功，答案数量为{len(answers)}")
 wirte_file("test6.jsonl", answers=answers)
 print("=" * 50)
-print(answers[55])
+print(answers[30])
 logger.success("文件成功写入test6.jsonl")
