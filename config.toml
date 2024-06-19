@@ -1,8 +1,8 @@
 ["zhipu"]
 model = "glm-4"
-key = "8c757cde7cff11fe0e13137bc38679a1.gaSN5dlpnoK2GjTg"
+key = "5212184cf576db88f5fb8addc4b8603e.37c8W9ifp5HhAhJ7"
 base_url = "https://open.bigmodel.cn/api/paas/v4/"
 dir_path = "../sourceData/data"
-top_k = 50
+top_k = 20
 embedding_path = "F:/PycharmProject/model/models--iampanda--zpoint_large_embedding_zh"
 question_path = "question.jsonl"

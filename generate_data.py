@@ -187,7 +187,8 @@ def getData_txt(dir_path) -> List[str]:
                     txt_content = file.read()
                     # print(txt_content)
                     txt_strings.append(txt_content)
-
+    txt_strings = list(set([item.strip() for item in txt_strings]))
+    txt_strings = [item for item in txt_strings if item]
     return txt_strings
 
 
